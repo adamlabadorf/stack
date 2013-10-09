@@ -8,10 +8,24 @@ var stack = (function() {
               '-webkit-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box;'+
               'display: none; padding: 2%; -webkit-transform: translate3d(0,0,0); }',
 
+            '.content { margin: auto; display: block; max-height: 100%; max-width: 100%; }',
             '.active { box-shadow: 0px 4px 8px rgba(0,0,0,.5); display: block; position: fixed; }'
             ];
-    var style = '<style type="text/css">' + style_rules.join("\n") + "</style>";
-    $("head").append(style);
+    var style = document.createElement('style');
+    style.setAttribute('type','text/css');
+    var css = style_rules.join("\n");
+    style.appendChild(document.createTextNode(css));
+
+    var head = document.getElementsByTagName("head");
+    console.log(head);
+    if(head.length == 0) {
+            console.log('no head element found, inserting one');
+            var head = document.createElement("head");
+            document.children[0].insertBefore(head,document.children[0].firstChild);
+    } else {
+        head = head[0]
+    }
+    head.appendChild(style);
 
     var stack = {},
         event = d3.dispatch("activate", "deactivate"),
