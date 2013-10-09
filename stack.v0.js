@@ -1,5 +1,5 @@
 var stack = (function() {
-    console.log('version 1.0.5');
+    console.log('version 1.1');
 
     // first add some stylesheets to the DOM
     var style_rules = [ 'body { background: #929292; font-family: "Helvetica Neue"; }',
