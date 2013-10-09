@@ -5,7 +5,7 @@ var stack = (function() {
     var style_rules = [ 'body { background: #929292; font-family: "Helvetica Neue"; }',
             'section { background-size:cover; }',
 
-            '.stack { background: #ccccff; color: #111; box-sizing: border-box; -moz-box-sizing: border-box;'+
+            '.stack { background: #fff; color: #111; box-sizing: border-box; -moz-box-sizing: border-box;'+
               '-webkit-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box;'+
               'display: none; padding: 2%; -webkit-transform: translate3d(0,0,0); }',
 
