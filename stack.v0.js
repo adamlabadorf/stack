@@ -2,8 +2,9 @@ var stack = (function() {
     console.log('version 1.1');
 
     // first add some stylesheets to the DOM
-    var style_rules = [ 'body { background: #929292; font-family: "Helvetica Neue"; }',
+    var style_rules = [ 'body { background: #929292; font-family: "Helvetica Neue";}',
             'section { background-size:cover; }',
+            'ol, ul { padding: 0% 0% 0% 10%; }',
 
             '.stack { background: #fff; color: #111; box-sizing: border-box; -moz-box-sizing: border-box;'+
               '-webkit-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box;'+
@@ -47,6 +48,7 @@ var stack = (function() {
         yMax,
         yOffset,
         aspect = 4/3,
+        baseFontSize = 24,
         textScale = 1.5,
         n = section[0].length;
 
@@ -131,7 +133,7 @@ var stack = (function() {
     }
 
     function resize() {
-        // calculate slide height by hight/width of window
+        // calculate slide height by height/width of window
         var ref = window.innerHeight*aspect > window.innerWidth ? window.innerWidth : window.innerHeight;
         ref *= .9; // shrink it a bit
         if(window.innerHeight*aspect > window.innerWidth) {
@@ -149,13 +151,11 @@ var stack = (function() {
         section.style("width",function(d,i) { return width+'px'; })
         section.style("height",function(d,i) { return size+'px'; })
 
-        d3.selectAll('p').style({
+        //d3.selectAll('p').style({
+        d3.select('body').style({
            "font-size":function(d) {
-                var customScale = d3.select(this).attr("textScale");
-                if(customScale == undefined) {
-                    customScale = 1;
-                }
-                return eval(customScale)*textScale*width/800+"em";
+                console.log(width/800);
+                return baseFontSize*textScale*width/800+"px";
             }
         });
 
