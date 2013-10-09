@@ -3,11 +3,13 @@ var stack = (function() {
 
     // first add some stylesheets to the DOM
     var style_rules = [ 'body { background: #929292; font-family: "Helvetica Neue"; }',
+            'section { background-size:cover; }',
 
-            '.stack { background: #ddd; color: #111; box-sizing: border-box; -moz-box-sizing: border-box;'+
+            '.stack { background: #ccccff; color: #111; box-sizing: border-box; -moz-box-sizing: border-box;'+
               '-webkit-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box;'+
               'display: none; padding: 2%; -webkit-transform: translate3d(0,0,0); }',
 
+            '.center { margin: auto; }',
             '.content { margin: auto; display: block; max-height: 100%; max-width: 100%; }',
             '.active { box-shadow: 0px 4px 8px rgba(0,0,0,.5); display: block; position: fixed; }'
             ];
@@ -17,13 +19,12 @@ var stack = (function() {
     style.appendChild(document.createTextNode(css));
 
     var head = document.getElementsByTagName("head");
-    console.log(head);
     if(head.length == 0) {
             console.log('no head element found, inserting one');
-            var head = document.createElement("head");
+            head = document.createElement("head");
             document.children[0].insertBefore(head,document.children[0].firstChild);
     } else {
-        head = head[0]
+        head = head[0];
     }
     head.appendChild(style);
 
@@ -184,7 +185,11 @@ var stack = (function() {
             case 33: // page up
             delta = d3.event.metaKey ? -Infinity : -1; break;
             case 32: // space
-            delta = d3.event.shiftKey ? -1 : 1;
+            delta = d3.event.shiftKey ? -1 : 1; break;
+            case 36: // home
+            delta = -Infinity; break;
+            case 35: // end
+            delta = Infinity; break;
             break;
             default: return;
         }
