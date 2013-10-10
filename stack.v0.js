@@ -4,7 +4,7 @@ var stack = (function() {
     // first add some stylesheets to the DOM
     var style_rules = [ 'body { background: #929292; font-family: "Helvetica Neue";}',
             'section { background-size:cover; }',
-            'ol, ul { padding: 0% 0% 0% 10%; }',
+            'ol, ul { padding: 0% 0% 0% 10%; margin: 2%;}',
 
             '.stack { background: #fff; color: #111; box-sizing: border-box; -moz-box-sizing: border-box;'+
               '-webkit-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box;'+
