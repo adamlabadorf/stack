@@ -5,6 +5,13 @@
     <script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>
     <script src="d3.v3.min.js"></script>
     <script src="stack.v0.js"></script>
+
+    <script src="jspdf.js"></script>
+    <script src="FileSaver.js"></script>
+    <script src="jspdf.plugin.from_html.js"></script>
+    <script src="jspdf.plugin.standard_fonts_metrics.js"></script>
+    <script src="jspdf.plugin.split_text_to_size.js"></script>
+
     <script src="http://adamlabadorf.github.io/d3po/d3po.js"></script>
     <script>
         $(document).ready(function() {
@@ -15,7 +22,7 @@
 </head>
 <body class="overview">
 
-    <slide>
+    <section>
       <p>
       <b>Stack</b> is a presentation library<br> based on Mike Bostock's
       <code>stack.js</code>.
@@ -23,75 +30,75 @@
       <p>
       I have modified it to behave more like traditional presentation software.
       </p>
-    </slide>
+    </section>
 
-    <slide>
+    <section>
         <p>
             Links:
             <ol>
                 <li><a href="#8">#8</a></li>
-                <li><a href="#scrollbar">Scrollbar slide</a></li>
-                <li><a href="#picture">Picture slide</a></li>
+                <li><a href="#scrollbar">Scrollbar section</a></li>
+                <li><a href="#picture">Picture section</a></li>
                 <li><a href="#plot">Cool plot</a></li>
             </ol>
         </p>
-    </slide>
+    </section>
 
-    <slide>
-      <p>You can change slides with the keyboard:
+    <section>
+      <p>You can change sections with the keyboard:
         <br>use the <b>arrow keys</b>,
         <br>the <b>space bar</b>,
         <br>or <b>page up</b> and <b>page down</b>
         <br>or <b>home</b> and <b>end</b>
         <br>or the <b>mouse wheel</b>
      </p>
-      <p class="center">Multiple key presses will skip multiple slides.</p>
-    </slide>
+      <p class="center">Multiple key presses will skip multiple sections.</p>
+    </section>
 
-    <slide>
+    <section>
       <p><b>=</b> key opens up navigation mode</p>
       <p>animations are a bit buggy still</p>
-    </slide>
+    </section>
 
-    <slide id="scrollbar">
+    <section id="scrollbar">
         <p>You can even grab the scroll bar!</p>
         <p>Even though nothing will change!</p>
         <p>SO! MUCH! FUN!</p>
-    </slide>
+    </section>
 
-    <slide>
+    <section>
         <h5 class="title">5</h5>
         <hr/>
-    </slide>
+    </section>
 
-    <slide>
+    <section>
         <h4 class="title">4</h4>
         <hr/>
-    </slide>
+    </section>
 
-    <slide>
+    <section>
         <h3 class="title">3</h3>
         <hr/>
-    </slide>
+    </section>
 
-    <slide>
+    <section>
         <h2 class="title">2</h2>
         <hr/>
-    </slide>
+    </section>
 
-    <slide>
+    <section>
         <h1 class="title">1</h1>
         <hr/>
-    </slide>
+    </section>
 
-    <slide id="picture">
+    <section id="picture">
       <img class="content" src="sky.jpg"></img>
-    </slide>
+    </section>
 
-    <slide style="background:url(sky.jpg)">
-    </slide>
+    <section style="background:url(sky.jpg)">
+    </section>
 
-    <slide id="plot">
+    <section id="plot">
     <h3 class="title">Interactive javascript plots! Yay!</h3>
     <hr/>
     <div id="plot"></div>
@@ -110,11 +117,11 @@
         }
         chart.scatter(data);
     </script>
-    </slide>
+    </section>
 
-    <slide>
+    <section>
       <p>Stack works on <b>iOS</b>, too.</p>
-    </slide>
+    </section>
 
 </body>
 </html>
