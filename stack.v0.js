@@ -1,37 +1,9 @@
-var stack = (function() {
+var stack = (function(config) {
     console.log('version 1.1');
-
-    // first add some stylesheets to the DOM
-    var style_rules = [ 'body { background: #929292; font-family: "Helvetica Neue";}',
-            'section { background-size:cover; }',
-            'ol, ul { padding: 0% 0% 0% 10%; margin: 2%;}',
-
-            '.stack { background: #fff; color: #111; box-sizing: border-box; -moz-box-sizing: border-box;'+
-              '-webkit-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box;'+
-              'display: none; padding: 2%; -webkit-transform: translate3d(0,0,0); }',
-
-            '.center { margin: auto; }',
-            '.content { margin: auto; display: block; max-height: 100%; max-width: 100%; }',
-            '.active { box-shadow: 0px 4px 8px rgba(0,0,0,.5); display: block; position: fixed; }'
-            ];
-    var style = document.createElement('style');
-    style.setAttribute('type','text/css');
-    var css = style_rules.join("\n");
-    style.appendChild(document.createTextNode(css));
-
-    var head = document.getElementsByTagName("head");
-    if(head.length == 0) {
-            console.log('no head element found, inserting one');
-            head = document.createElement("head");
-            document.children[0].insertBefore(head,document.children[0].firstChild);
-    } else {
-        head = head[0];
-    }
-    head.appendChild(style);
 
     var stack = {},
         event = d3.dispatch("activate", "deactivate"),
-        section = d3.selectAll("section"),
+        slide = d3.selectAll("slide"),
         self = d3.select(window),
         body = document.body,
         root = document.documentElement,
@@ -47,89 +19,79 @@ var stack = (function() {
         yActive = -1,
         yMax,
         yOffset,
+        slideIds = [],
         aspect = 4/3,
         baseFontSize = 24,
         textScale = 1.5,
-        n = section[0].length;
+        n = slide[0].length,
 
-        // Invert the z-index so the earliest slides are on top.
-        section.classed("stack", true).style("z-index", function(d, i) { return n - i; });
+        // css stuff
+        style_rules,
+        style,
+        css,
+        head;
 
-        // Sets the stack position.
-        stack.position = function(y1) {
-            var y0 = body.scrollTop / size;
-            if (arguments.length < 1) return y0;
+    // first add some stylesheets to the DOM
+    style_rules = [ 'body { background: #323232; font-family: "Helvetica Neue";}',
+            'slide { background-size:cover; }',
+            'ol, ul { padding: 0% 0% 0% 10%; margin: 2%;}',
+            'a { text-decoration: none; }',
 
-            // clamp and round
-            if (y1 >= n) y1 = n - 1;
-            else if (y1 < 0) y1 = Math.max(0, n + y1);
-            y1 = Math.floor(y1);
+            '.stack { background: #fff; color: #111; box-sizing: border-box; -moz-box-sizing: border-box;'+
+              '-webkit-box-sizing: border-box; -ms-box-sizing: border-box; -o-box-sizing: border-box;'+
+              'display: none; padding: 3%; -webkit-transform: translate3d(0,0,0); }',
 
-            if (y0 - y1) {
-                self.on("scroll.stack", null);
-                leap(y1);
-                d3.select(body).transition()
-                        .duration(duration)
-                        .ease(ease)
-                        .tween("scrollTop", tween(yTarget = y1))
-                        .each("end", function() { yTarget = null; self.on("scroll.stack", scroll); });
-            }
+            '.center { margin: auto; }',
+            '.content { margin: auto; display: block; max-height: 100%; max-width: 100%; }',
+            '.active { box-shadow: 0px 4px 8px rgba(0,0,0,.5); display: block; position: fixed; }',
+            '.title { padding: 0px; margin: 0px; }'
+            ];
 
-            location.replace("#" + y1);
+    style = document.createElement('style');
+    style.setAttribute('type','text/css');
 
-            return stack;
-        };
+    css = style_rules.join("\n");
+    style.appendChild(document.createTextNode(css));
 
-        stack.duration = function(_) {
-            if (!arguments.length) return duration;
-            duration = _;
-            return stack;
-        };
-
-        stack.ease = function(_) {
-            if (!arguments.length) return ease;
-            ease = _;
-            return stack;
-        };
-
-        self
-                .on("keydown.stack", keydown)
-                .on("resize.stack", resize)
-                .on("scroll.stack", scroll)
-                //.on("mousemove.stack", snap)
-                .on("hashchange.stack", hashchange);
-
-
-    // if scrolling up, jump to edge of previous slide
-    function leap(yNew) {
-        if ((yActual < n - 1) && (yActual == yFloor) && (yNew < yActual)) {
-            yActual -= .5 - yOffset / size / 2;
-            scrollTo(0, yActual * size);
-            reactivate();
-            return true;
-        }
+    head = document.getElementsByTagName("head");
+    if(head.length == 0) {
+            console.log('no head element found, inserting one');
+            head = document.createElement("head");
+            document.children[0].insertBefore(head,document.children[0].firstChild);
+    } else {
+        head = head[0];
     }
+    head.appendChild(style);
 
-    function reactivate() {
-        var yNewActive = Math.floor(yActual) + (yActual % 1 ? .5 : 0);
-        if (yNewActive !== yActive) {
-            var yNewActives = {};
-            yNewActives[Math.floor(yNewActive)] = 1;
-            yNewActives[Math.ceil(yNewActive)] = 1;
-            if (yActive >= 0) {
-                var yOldActives = {};
-                yOldActives[Math.floor(yActive)] = 1;
-                yOldActives[Math.ceil(yActive)] = 1;
-                for (var i in yOldActives) {
-                    if (i in yNewActives) delete yNewActives[i];
-                    else event.deactivate.call(section[0][+i], +i);
-                }
-            }
-            for (var i in yNewActives) {
-                event.activate.call(section[0][+i], +i);
-            }
-            yActive = yNewActive;
-        }
+    // Invert the z-index so the earliest slides are on top.
+    slide.classed("stack", true).style("z-index", function(d, i) { return n - i; });
+
+    // slides can be referred to by number or by id attribute
+    slide.each(function(d,i) { 
+        slideIds.push(d3.select(this).attr('id') || i.toString())
+    });
+
+    // Sets the stack position.
+    stack.position = function(yNew) {
+
+        yActive = Math.max(0,+yNew);
+        yActive = Math.min(yActive,n-1);
+
+        slide.classed("active",function(d,i) { return i == yActive });
+
+        location.replace("#" + slideIds[yActive]);
+
+        return stack;
+    };
+
+    self
+            .on("keydown.stack", keydown)
+            .on("resize.stack", resize)
+            .on("mousewheel.stack", scroll)
+            .on("hashchange.stack", hashchange);
+
+    function scroll(e) {
+        stack.position(yActive+d3.event.wheelDelta/-120);
     }
 
     function resize() {
@@ -147,14 +109,13 @@ var stack = (function() {
         yOffset = (window.innerHeight - size) / 2;
         yMax = 1 + yOffset / size;
 
-        // reset the section widths to reflect current browser dimensions
-        section.style("width",function(d,i) { return width+'px'; })
-        section.style("height",function(d,i) { return size+'px'; })
+        // reset the slide widths to reflect current browser dimensions
+        slide.style("width",function(d,i) { return width+'px'; })
+        slide.style("height",function(d,i) { return size+'px'; })
 
         //d3.selectAll('p').style({
         d3.select('body').style({
            "font-size":function(d) {
-                console.log(width/800);
                 return baseFontSize*textScale*width/800+"px";
             }
         });
@@ -167,12 +128,143 @@ var stack = (function() {
     }
 
     function hashchange() {
-        var hash = +location.hash.slice(1);
-        if (!isNaN(hash) && hash !== yFloor) stack.position(hash);
+        var hash = location.hash.slice(1),
+            slideId;
+        slideId = slideIds.indexOf(hash);
+        if(slideId == -1 && !isNaN(+hash)) { slideId = +hash; }
+        stack.position(slideId);
     }
 
+    function nav_mode() {
+        var wborder = window.innerWidth*0.05,
+            hborder = window.innerHeight*0.05,
+            gridWidth = window.innerWidth-2*wborder,
+            gridHeight = window.innerHeight-2*hborder,
+            nrows = 5,
+            ncols = 5,
+            scaleFactor = 0.9,
+            makeTransTween = function(d,i,a) {
+                var row = Math.floor(i/nrows),
+                    col = i%ncols,
+                    trans = d3.transform(),
+                    dx, dy,
+                    br, ew, eh;
+
+                dx = gridWidth/ncols*col-gridWidth/2+2*wborder;
+                dy = gridHeight/nrows*row-gridHeight/2+2*hborder;
+
+                trans.translate = [dx, dy];
+                trans.scale = [scaleFactor/nrows,scaleFactor/ncols];
+
+                return function(a) {
+                    var tweenTrans = d3.transform();
+                    tweenTrans.translate = [trans.translate[0]*a+"px",
+                                            trans.translate[1]*a+"px"];
+                    tweenTrans.scale = [1-(1-trans.scale[0])*a,
+                                        1-(1-trans.scale[1])*a];
+                    return tweenTrans.toString();
+                }
+        };
+
+        // move all the slides into a grid, using CSS transforms
+        slide
+            .classed("active",true)
+            .transition()
+            .ease("linear")
+            .duration(150)
+            .styleTween("transform", makeTransTween)
+            .styleTween("-ms-transform", makeTransTween)
+            .styleTween("-webkit-transform", makeTransTween)
+
+        // clicking or mousewheeling ends nav mode
+        // FIXME: mouseover and mouseout effects are a little buggy
+        slide.on({
+            "click": function(d,i) {
+                slide
+                  .style({
+                    "transform":"",
+                    "-ms-transform":"",
+                    "-webkit-transform":""
+                   })
+                  .on({"click":null,
+                       "mouseover":null,
+                       "mouseout":null
+                      });
+                stack.position(i);
+            },
+            "mousewheel": function(d,i) {
+                slide
+                  .style({
+                    "transform":"",
+                    "-ms-transform":"",
+                    "-webkit-transform":""
+                   })
+                  .on({"click":null,
+                       "mouseover":null,
+                       "mouseout":null
+                      });
+            },
+            "mouseover": function(d,i) {
+                var transStr = d3.select(this).style("transform") ||
+                            d3.select(this).style("-ms-transform") ||
+                            d3.select(this).style("-webkit-transform"),
+                    trans = d3.transform(transStr),
+                    makeTransTween = function() {
+                        return function(a) {
+                            var tweenTrans = d3.transform(),
+                                trans = d3.transform(transStr);
+                            tweenTrans.scale = [scaleFactor/nrows*(1+.1*a),
+                                                scaleFactor/ncols*(1+.1*a)];
+                            tweenTrans.translate = [trans.translate[0]+"px",
+                                                    trans.translate[1]+"px"];
+                            console.log(tweenTrans.toString());
+                            return tweenTrans.toString();
+                        }
+                    };
+                // event bubbling and precision issues
+                // probably a better way to fix them
+                if(Math.abs(trans.scale[0] - scaleFactor/nrows*1.1) > 0.001) {
+                    d3.select(this)
+                      .transition()
+                      .duration(150)
+                      .styleTween("transform", makeTransTween)
+                      .styleTween("-ms-transform", makeTransTween)
+                      .styleTween("-webkit-transform", makeTransTween);
+                }
+            },
+            "mouseout": function(d,i) {
+                var transStr = d3.select(this).style("transform") ||
+                            d3.select(this).style("-ms-transform") ||
+                            d3.select(this).style("-webkit-transform"),
+                    trans = d3.transform(transStr),
+                    makeTransTween = function() {
+                        return function(a) {
+                            var tweenTrans = d3.transform(),
+                                trans = d3.transform(transStr);
+                            tweenTrans.scale = [scaleFactor/nrows*1.1*(1-.1*a/1.1),
+                                                scaleFactor/ncols*1.1*(1-.1*a/1.1)];
+                            tweenTrans.translate = [trans.translate[0]+"px",
+                                                    trans.translate[1]+"px"];
+                            return tweenTrans.toString();
+                        }
+                    };
+                // event bubbling and precision issues
+                // probably a better way to fix them
+                if(Math.abs(trans.scale[0] - scaleFactor/nrows) > 0.001) {
+                    d3.select(this)
+                      .transition()
+                      .duration(150)
+                      .styleTween("transform", makeTransTween)
+                      .styleTween("-ms-transform", makeTransTween)
+                      .styleTween("-webkit-transform", makeTransTween);
+                }
+            }
+
+        });
+
+    }
     function keydown() {
-        var delta;
+        var delta = 0;
         switch (d3.event.keyCode) {
             case 39: // right arrow
             if (d3.event.metaKey) return;
@@ -191,84 +283,21 @@ var stack = (function() {
             case 35: // end
             delta = Infinity; break;
             break;
+            case 187: // equals goes into nav mode
+                nav_mode();
+                return;
+            break;
             default: return;
         }
-        if (timeout) timeout = clearTimeout(timeout);
-        if (yTarget == null) yTarget = (delta > 0 ? Math.floor : Math.ceil)(yActual == yFloor ? yFloor : yActual + (.5 - yOffset / size / 2));
-        stack.position(yTarget = Math.max(0, Math.min(n - 1, yTarget + delta)));
+
+        stack.position(yActive+delta);
+
         d3.event.preventDefault();
     }
-
-    function scroll(e) {
-        // Detect whether to scroll with documentElement or body.
-        if (body !== root && root.scrollTop) body = root;
-
-        var yNew = Math.max(0, body.scrollTop / size);
-        if (yNew >= n - 1.51 + yOffset / size) yNew = n - 1;
-
-        // if scrolling up, jump to edge of previous slide
-        if (leap(yNew)) return;
-
-        var yNewFloor = Math.max(0, Math.floor(yActual = yNew)),
-                yError = Math.min(yMax, (yActual % 1) * 2);
-
-        if (yFloor != yNewFloor) {
-            location.replace("#" + yNewFloor);
-            yFloor = yNewFloor;
-        }
-
-        section
-                .classed("active", false);
-
-        var select = d3.select(section[0][yFloor])
-                .style("-webkit-transform", yError ? "translate3d(0," + (-yError * size) + "px,0)" : null)
-                .style("-o-transform", yError ? "translate(0," + (-yError * size) + "px)" : null)
-                .style("-moz-transform", yError ? "translate(0," + (-yError * size) + "px)" : null)
-                .style("transform", yError ? "translate(0," + (-yError * size) + "px)" : null)
-                .classed("active", yError != yMax);
-
-        d3.select(section[0][yFloor + 1])
-                .style("-webkit-transform", yError ? "translate3d(0,0,0)" : null)
-                .style("-o-transform", yError ? "translate(0,0)" : null)
-                .style("-moz-transform", yError ? "translate(0,0)" : null)
-                .style("transform", yError ? "translate(0,0)" : null)
-                .classed("active", yError > 0);
-
-        reactivate();
-    }
-
-    function snap() {
-        var y = d3.event.clientY;
-        if (y === screenY) return; // ignore move on scroll
-        screenY = y;
-
-        if (yTarget != null) return; // don't snap if already snapping
-
-        var y0 = stack.position(),
-            y1 = Math.max(0, Math.round(y0 + .25));
-
-        // if we're before the first slide, or after the last slide, do nothing
-        if (y0 <= 0 || y0 >= n - 1.51 + yOffset / size) return;
-
-        // if the previous slide is not visible, immediate jump
-        if (y1 > y0 && y1 - y0 < .5 - yOffset / size) scrollTo(0, y1 * size);
-
-        // else transition
-        else if (y1 !== y0) stack.position(y1);
-    }
-
-    function tween(y) {
-        return function() {
-            var i = d3.interpolateNumber(this.scrollTop, y * size);
-            return function(t) { scrollTo(0, i(t)); scroll(); };
-        };
-    }
-
     d3.rebind(stack, event, "on");
 
     resize();
     hashchange();
-    scroll();
 
     return stack;
 });
