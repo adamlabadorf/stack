@@ -3,7 +3,7 @@ var stack = (function(config) {
 
     var stack = {},
         event = d3.dispatch("activate", "deactivate"),
-        slide = d3.selectAll("slide"),
+        section = d3.selectAll("section"),
         self = d3.select(window),
         body = document.body,
         root = document.documentElement,
@@ -19,11 +19,11 @@ var stack = (function(config) {
         yActive = -1,
         yMax,
         yOffset,
-        slideIds = [],
+        sectionIds = [],
         aspect = 4/3,
         baseFontSize = 24,
         textScale = 1.5,
-        n = slide[0].length,
+        n = section[0].length,
 
         // css stuff
         style_rules,
@@ -33,7 +33,7 @@ var stack = (function(config) {
 
     // first add some stylesheets to the DOM
     style_rules = [ 'body { background: #323232; font-family: "Helvetica Neue";}',
-            'slide { background-size:cover; }',
+            'section { background-size:cover; }',
             'ol, ul { padding: 0% 0% 0% 10%; margin: 2%;}',
             'a { text-decoration: none; }',
 
@@ -63,12 +63,12 @@ var stack = (function(config) {
     }
     head.appendChild(style);
 
-    // Invert the z-index so the earliest slides are on top.
-    slide.classed("stack", true).style("z-index", function(d, i) { return n - i; });
+    // Invert the z-index so the earliest sections are on top.
+    section.classed("stack", true).style("z-index", function(d, i) { return n - i; });
 
-    // slides can be referred to by number or by id attribute
-    slide.each(function(d,i) { 
-        slideIds.push(d3.select(this).attr('id') || i.toString())
+    // sections can be referred to by number or by id attribute
+    section.each(function(d,i) { 
+        sectionIds.push(d3.select(this).attr('id') || i.toString())
     });
 
     // Sets the stack position.
@@ -77,9 +77,9 @@ var stack = (function(config) {
         yActive = Math.max(0,+yNew);
         yActive = Math.min(yActive,n-1);
 
-        slide.classed("active",function(d,i) { return i == yActive });
+        section.classed("active",function(d,i) { return i == yActive });
 
-        location.replace("#" + slideIds[yActive]);
+        location.replace("#" + sectionIds[yActive]);
 
         return stack;
     };
@@ -95,7 +95,7 @@ var stack = (function(config) {
     }
 
     function resize() {
-        // calculate slide height by height/width of window
+        // calculate section height by height/width of window
         var ref = window.innerHeight*aspect > window.innerWidth ? window.innerWidth : window.innerHeight;
         ref *= .9; // shrink it a bit
         if(window.innerHeight*aspect > window.innerWidth) {
@@ -109,9 +109,9 @@ var stack = (function(config) {
         yOffset = (window.innerHeight - size) / 2;
         yMax = 1 + yOffset / size;
 
-        // reset the slide widths to reflect current browser dimensions
-        slide.style("width",function(d,i) { return width+'px'; })
-        slide.style("height",function(d,i) { return size+'px'; })
+        // reset the section widths to reflect current browser dimensions
+        section.style("width",function(d,i) { return width+'px'; })
+        section.style("height",function(d,i) { return size+'px'; })
 
         //d3.selectAll('p').style({
         d3.select('body').style({
@@ -129,10 +129,10 @@ var stack = (function(config) {
 
     function hashchange() {
         var hash = location.hash.slice(1),
-            slideId;
-        slideId = slideIds.indexOf(hash);
-        if(slideId == -1 && !isNaN(+hash)) { slideId = +hash; }
-        stack.position(slideId);
+            sectionId;
+        sectionId = sectionIds.indexOf(hash);
+        if(sectionId == -1 && !isNaN(+hash)) { sectionId = +hash; }
+        stack.position(sectionId);
     }
 
     function nav_mode() {
@@ -166,8 +166,8 @@ var stack = (function(config) {
                 }
         };
 
-        // move all the slides into a grid, using CSS transforms
-        slide
+        // move all the sections into a grid, using CSS transforms
+        section
             .classed("active",true)
             .transition()
             .ease("linear")
@@ -178,9 +178,9 @@ var stack = (function(config) {
 
         // clicking or mousewheeling ends nav mode
         // FIXME: mouseover and mouseout effects are a little buggy
-        slide.on({
+        section.on({
             "click": function(d,i) {
-                slide
+                section
                   .style({
                     "transform":"",
                     "-ms-transform":"",
@@ -193,7 +193,7 @@ var stack = (function(config) {
                 stack.position(i);
             },
             "mousewheel": function(d,i) {
-                slide
+                section
                   .style({
                     "transform":"",
                     "-ms-transform":"",
@@ -286,6 +286,19 @@ var stack = (function(config) {
             case 187: // equals goes into nav mode
                 nav_mode();
                 return;
+            break;
+            case 83: // s saves as pdf
+                /* this doesn't work yet
+                var doc = jsPDF('p','in',[6,8]);
+
+                console.log(doc);
+                section.each(function() {
+                    doc.addPage();
+                    console.log(p);
+                    doc.fromHTML(this);
+                });
+                doc.save();
+                */
             break;
             default: return;
         }
